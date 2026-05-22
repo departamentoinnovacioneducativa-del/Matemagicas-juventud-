@@ -16,7 +16,21 @@ if os.path.exists(imagen_portada):
     # Creamos 3 columnas virtuales. La del centro (proporción 2) contendrá la imagen
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.image(imagen_portada, use_container_width=True)
+        # INTERFAZ DE CABECERA: Imagen de Portada Centrada
+# Forzamos la búsqueda en minúsculas y mayúsculas para evitar errores en Linux
+imagen_portada = "Mikey.jpeg"
+if not os.path.exists(imagen_portada):
+    imagen_portada = "mickey.jpeg"
+
+if os.path.exists(imagen_portada):
+    # Creamos 3 columnas virtuales. La del centro (proporción 2) contendrá la imagen
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        # CORRECCIÓN AQUÍ: Cambiado use_container_width por use_column_width
+        st.image(imagen_portada, use_column_width=True)
+else:
+    # Mensaje de respaldo en producción si no encuentra ninguna de las dos rutas
+    st.info("Cargando interfaz del tutor inteligente...")
 else:
     # Mensaje de respaldo invisible en producción por si cambia el nombre del archivo
     st.info("Cargando interfaz del tutor inteligente...")
