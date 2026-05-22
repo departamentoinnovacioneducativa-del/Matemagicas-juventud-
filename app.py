@@ -5,13 +5,12 @@ import os
 # CONFIGURACIÓN DE PÁGINA (Debe ser lo primero)
 st.set_page_config(
     page_title="Mickey 17 - Matemáticas IV",
-    page_icon="🧬",
     layout="centered"
 )
 
 # INTERFAZ DE CABECERA: Imagen de Portada Centrada
 # Buscamos el archivo "Mickey.jpeg" tal como lo guardaste en tu repositorio
-imagen_portada = "Mickey.jpeg"
+imagen_portada = "Mikey.jpeg"
 
 if os.path.exists(imagen_portada):
     # Creamos 3 columnas virtuales. La del centro (proporción 2) contendrá la imagen
