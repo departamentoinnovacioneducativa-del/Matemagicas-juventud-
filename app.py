@@ -2,22 +2,14 @@ import streamlit as st
 import requests
 import os
 
-# CONFIGURACIÓN DE PÁGINA (Debe ser lo primero)
+# CONFIGURACIÓN DE PÁGINA (Debe ser estrictamente lo primero)
 st.set_page_config(
     page_title="Mickey 17 - Matemáticas IV",
     layout="centered"
 )
 
 # INTERFAZ DE CABECERA: Imagen de Portada Centrada
-# Buscamos el archivo "Mickey.jpeg" tal como lo guardaste en tu repositorio
-imagen_portada = "Mikey.jpeg"
-
-if os.path.exists(imagen_portada):
-    # Creamos 3 columnas virtuales. La del centro (proporción 2) contendrá la imagen
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        # INTERFAZ DE CABECERA: Imagen de Portada Centrada
-# Forzamos la búsqueda en minúsculas y mayúsculas para evitar errores en Linux
+# Buscamos el archivo bajo formatos comunes para evitar fallos de mayúsculas en Linux
 imagen_portada = "Mikey.jpeg"
 if not os.path.exists(imagen_portada):
     imagen_portada = "mickey.jpeg"
@@ -26,13 +18,9 @@ if os.path.exists(imagen_portada):
     # Creamos 3 columnas virtuales. La del centro (proporción 2) contendrá la imagen
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        # CORRECCIÓN AQUÍ: Cambiado use_container_width por use_column_width
         st.image(imagen_portada, use_column_width=True)
 else:
-    # Mensaje de respaldo en producción si no encuentra ninguna de las dos rutas
-    st.info("Cargando interfaz del tutor inteligente...")
-else:
-    # Mensaje de respaldo invisible en producción por si cambia el nombre del archivo
+    # Mensaje de respaldo si la imagen aún no se ha procesado en el servidor
     st.info("Cargando interfaz del tutor inteligente...")
 
 # GUÍA DE MATEMÁTICAS IV (Base de Conocimiento)
@@ -58,7 +46,7 @@ UNIDAD 2: Operaciones algebraicas y productos notables
 
 UNIDAD 3: Ecuaciones de primer y segundo grado
 14. Ecuaciones de primer grado lineales y fraccionarias.
-15. Problemas de application con ecuaciones de primer grado (edades, perímetros, cerdos y gallinas).
+15. Problemas de aplicación con ecuaciones de primer grado (edades, perímetros, cerdos y gallinas).
 16. Ecuaciones cuadráticas por Fórmula General.
 17. Ecuaciones de segundo grado incompletas.
 
