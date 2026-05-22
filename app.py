@@ -1,6 +1,5 @@
 import streamlit as st
-from openai import OpenAI
-import streamlit.components.v1 as components
+import requests
 
 # CONFIGURACIÓN DE PÁGINA
 st.set_page_config(
@@ -61,9 +60,9 @@ st.markdown("""
         color: #c084fc !important;
         font-family: 'Courier New', Courier, monospace;
         font-weight: bold;
+        margin: 0;
     }
 
-    /* Estilos para el contenedor de los mensajes del chat */
     [data-testid="stChatMessage"] {
         background-color: #1e293b !important;
         border-radius: 8px;
@@ -74,7 +73,6 @@ st.markdown("""
         color: #f1f5f9 !important;
     }
     
-    /* Input del chat */
     textarea {
         background-color: #1e293b !important;
         color: #f1f5f9 !important;
@@ -97,7 +95,7 @@ REGLAS CRÍTICAS DE COMPORTAMIENTO:
    - ¿Qué ejercicio o tipo de problema te está causando conflicto?
 2. ESTRATEGIA SOCRÁTICA (PROHIBIDO DAR LA RESPUESTA DIRECTA): No resuelvas los ejercicios del estudiante de forma inmediata. Tu labor es guiar paso a paso. Propón un ejercicio muy similar o divide el problema actual en pasos pequeños (máximo 3).
 3. ACTIVACIÓN COGNITIVA: Antes de dar fórmulas, pregunta al estudiante qué recuerda del concepto (por ejemplo: "¿Recuerdas la fórmula para calcular la media aritmética?" o "¿Qué operación matemática debemos hacer primero cuando hay paréntesis?").
-4. FORMATO MATEMÁTICO RIGUROSO: Debes utilizar obligatoriamente notación en bloques o en línea de LaTeX para cualquier expresión matemática (ejemplo: $x^2 - 5x - 36 = 0$ o $\\frac{a^6}{b^{-8}}$) para asegurar una visualización clara.
+4. FORMATO MATEMÁTICO RIGUROSO: Debes utilizar obligatoriamente notación en bloques o en línea de LaTeX para cualquier expresión matemática (ejemplo: $x^2 - 5x - 36 = 0$ o $\\frac{{a^6}}{{b^{{-8}}}}$) para asegurar una visualización clara.
 5. CIERRE DE TURNO: Termina cada una de tus intervenciones con una pregunta directa, clara y corta que invite al estudiante a escribir o calcular el siguiente paso de la solución.
 6. TONO: Empático, paciente, con un estilo de colega experto en la materia."""
 
@@ -106,7 +104,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# MENSAJE DE BIENVENIDA INICIAL AUTOMÁTICO (Si el chat está vacío)
+# MENSAJE DE BIENVENIDA INICIAL AUTOMÁTICO
 if len(st.session_state.messages) == 0:
     welcome_text = "¡Hola! Soy **Mickey 17**, tu tutor especializado para el examen de Matemáticas IV. Vamos a dominar estos temas paso a paso para que te vaya excelente.\n\nPara empezar de forma organizada, cuéntame: **¿Qué unidad de la guía te gustaría revisar hoy y qué ejercicio te está causando problemas?**"
     st.session_state.messages.append({"role": "assistant", "content": welcome_text})
@@ -119,23 +117,37 @@ if prompt := st.chat_input("Escribe aquí tu duda o respuesta al ejercicio..."):
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # GENERACIÓN DE RESPUESTA DE LA IA CON GROQ
+    # GENERACIÓN DE RESPUESTA USANDO PETICIÓN HTTP DIRECTA A GROQ (Evita fallos de librería)
     with st.chat_message("assistant"):
         try:
-            # Asegúrate de configurar tu variable st.secrets con la clave "GROQ_API_KEY"
-            client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=st.secrets["GROQ_API_KEY"])
+            api_key = st.secrets["GROQ_API_KEY"]
             
-            # Construcción de la llamada usando el modelo Llama 3.3 de 70B
-            response = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[{"role": "system", "content": SYSTEM_PROMPT}] + st.session_state.messages,
-                max_tokens=3000,
-                temperature=0.5
-            )
+            # Formatear el historial para la API de Groq
+            api_messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+            for msg in st.session_state.messages:
+                api_messages.append({"role": msg["role"], "content": msg["content"]})
+                
+            # Llamada HTTP directa
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            }
             
-            full_response = response.choices[0].message.content
-            st.markdown(full_response)
-            st.session_state.messages.append({"role": "assistant", "content": full_response})
+            data = {
+                "model": "llama-3.3-70b-versatile",
+                "messages": api_messages,
+                "temperature": 0.5,
+                "max_tokens": 2048
+            }
+            
+            response = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=data)
+            
+            if response.status_code == 200:
+                full_response = response.json()["choices"][0]["message"]["content"]
+                st.markdown(full_response)
+                st.session_state.messages.append({"role": "assistant", "content": full_response})
+            else:
+                st.error(f"Error de comunicación con Groq (Código {response.status_code}): {response.text}")
             
         except Exception as e:
             st.error(f"Error en el sistema de tutoría Mickey 17: {e}")
@@ -144,4 +156,4 @@ if prompt := st.chat_input("Escribe aquí tu duda o respuesta al ejercicio..."):
 st.sidebar.markdown("### Control de Sesión")
 if st.sidebar.button("Reiniciar Tutoría (Reset)"):
     st.session_state.messages = []
-    st.rerun()
+    st.experimental_rerun()
