@@ -1,12 +1,26 @@
 import streamlit as st
 import requests
+import os
 
-# CONFIGURACIÓN DE PÁGINA
+# CONFIGURACIÓN DE PÁGINA (Debe ser lo primero)
 st.set_page_config(
     page_title="Mickey 17 - Matemáticas IV",
     page_icon="🧬",
     layout="centered"
 )
+
+# INTERFAZ DE CABECERA: Imagen de Portada Centrada
+# Buscamos el archivo "Mickey.jpeg" tal como lo guardaste en tu repositorio
+imagen_portada = "Mickey.jpeg"
+
+if os.path.exists(imagen_portada):
+    # Creamos 3 columnas virtuales. La del centro (proporción 2) contendrá la imagen
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.image(imagen_portada, use_container_width=True)
+else:
+    # Mensaje de respaldo invisible en producción por si cambia el nombre del archivo
+    st.info("Cargando interfaz del tutor inteligente...")
 
 # GUÍA DE MATEMÁTICAS IV (Base de Conocimiento)
 GUIA_MATEMATICAS_IV = """
@@ -31,7 +45,7 @@ UNIDAD 2: Operaciones algebraicas y productos notables
 
 UNIDAD 3: Ecuaciones de primer y segundo grado
 14. Ecuaciones de primer grado lineales y fraccionarias.
-15. Problemas de aplicación con ecuaciones de primer grado (edades, perímetros, cerdos y gallinas).
+15. Problemas de application con ecuaciones de primer grado (edades, perímetros, cerdos y gallinas).
 16. Ecuaciones cuadráticas por Fórmula General.
 17. Ecuaciones de segundo grado incompletas.
 
@@ -50,10 +64,11 @@ st.markdown("""
     .main-header {
         text-align: center;
         background: #1e293b;
-        padding: 1.5rem;
+        padding: 1.2rem;
         border-radius: 12px;
         border-bottom: 4px solid #a78bfa;
-        margin-bottom: 2rem;
+        margin-top: 1rem;
+        margin-bottom: 1.5rem;
     }
     
     .main-header h1 {
@@ -61,6 +76,7 @@ st.markdown("""
         font-family: 'Courier New', Courier, monospace;
         font-weight: bold;
         margin: 0;
+        font-size: 1.8rem;
     }
 
     [data-testid="stChatMessage"] {
@@ -80,6 +96,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Título de la aplicación debajo de la imagen de cabecera
 st.markdown('<div class="main-header"><h1>🧬 MICKEY 17: Sistema de Tutoría Inteligente</h1></div>', unsafe_allow_html=True)
 
 # LÓGICA DE MENSAJES Y CONFIGURACIÓN DEL HISTORIAL
@@ -94,9 +111,9 @@ REGLAS CRÍTICAS DE COMPORTAMIENTO:
    - ¿Qué unidad de la guía te gustaría revisar hoy?
    - ¿Qué ejercicio o tipo de problema te está causando conflicto?
 2. ESTRATEGIA SOCRÁTICA (PROHIBIDO DAR LA RESPUESTA DIRECTA): No resuelvas los ejercicios del estudiante de forma inmediata. Tu labor es guiar paso a paso. Propón un ejercicio muy similar o divide el problema actual en pasos pequeños (máximo 3).
-3. ACTIVACIÓN COGNITIVA: Antes de dar fórmulas, pregunta al estudiante qué recuerda del concepto (por ejemplo: "¿Recuerdas la fórmula para calcular la media aritmética?" o "¿Qué operación matemática debemos hacer primero cuando hay paréntesis?").
+3. ACTIVACIÓN COGNITIVA: Antes de dar fórmulas, pregunta al estudiante qué recuerda del concepto, como por ejemplo las medidas de tendencia central o leyes de signos.
 4. FORMATO MATEMÁTICO RIGUROSO: Debes utilizar obligatoriamente notación en bloques o en línea de LaTeX para cualquier expresión matemática (ejemplo: $x^2 - 5x - 36 = 0$ o $\\frac{{a^6}}{{b^{{-8}}}}$) para asegurar una visualización clara.
-5. CIERRE DE TURNO: Termina cada una de tus intervenciones con una pregunta directa, clara y corta que invite al estudiante a escribir o calcular el siguiente paso de la solución.
+5. CIERRE DE TURNO: Termina cada una de tus intervenciones con una pregunta directa, clara y corta que invite al estudiante a escribir o calcular el siguiente paso del ejercicio.
 6. TONO: Empático, paciente, con un estilo de colega experto en la materia."""
 
 # RENDERIZAR EL HISTORIAL DE CHAT
@@ -117,17 +134,15 @@ if prompt := st.chat_input("Escribe aquí tu duda o respuesta al ejercicio..."):
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # GENERACIÓN DE RESPUESTA USANDO PETICIÓN HTTP DIRECTA A GROQ (Evita fallos de librería)
+    # GENERACIÓN DE RESPUESTA USANDO PETICIÓN HTTP DIRECTA A GROQ
     with st.chat_message("assistant"):
         try:
             api_key = st.secrets["GROQ_API_KEY"]
             
-            # Formatear el historial para la API de Groq
             api_messages = [{"role": "system", "content": SYSTEM_PROMPT}]
             for msg in st.session_state.messages:
                 api_messages.append({"role": msg["role"], "content": msg["content"]})
                 
-            # Llamada HTTP directa
             headers = {
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json"
@@ -156,4 +171,4 @@ if prompt := st.chat_input("Escribe aquí tu duda o respuesta al ejercicio..."):
 st.sidebar.markdown("### Control de Sesión")
 if st.sidebar.button("Reiniciar Tutoría (Reset)"):
     st.session_state.messages = []
-    st.experimental_rerun()
+    st.rerun()
