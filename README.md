@@ -1,2 +1,2 @@
-# Matemagicas-juventud-
-IA de apoyo para el estudio de matemáticas 
+# Juventus
+IA personal del instituto juventud
